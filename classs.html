@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>منصة 4م2 الدراسية</title>
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --primary-hover: #0056b3;
+            --bg-color: #f0f2f5;
+            --sidebar-bg: #ffffff;
+            --card-bg: #ffffff;
+            --text-color: #1c1e21;
+            --text-secondary: #65676b;
+            --border-color: #ced0d4;
+            --shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .dark-mode {
+            --primary-color: #4dabf7;
+            --primary-hover: #1e90ff;
+            --bg-color: #18191a;
+            --sidebar-bg: #242526;
+            --card-bg: #242526;
+            --text-color: #e4e6eb;
+            --text-secondary: #b0b3b8;
+            --border-color: #3e4042;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        /* --- AUTH PAGE --- */
+        #auth-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        .auth-box {
+            background-color: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        .auth-box h2 { margin-top: 0; }
+        .auth-box input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-sizing: border-box;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+        .auth-box button {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 10px;
+            transition: background-color 0.2s;
+        }
+        .auth-box button:hover { background-color: var(--primary-hover); }
+        .google-btn { background-color: #db4437; }
+        .google-btn:hover { background-color: #c23321; }
+        .auth-toggle { color: var(--primary-color); cursor: pointer; font-weight: 500; }
+        #error-message { color: #dc3545; margin-top: 10px; min-height: 20px; }
+
+        /* --- MAIN APP LAYOUT --- */
+        #main-app {
+            display: none; /* Hidden by default */
+            display: flex;
+        }
+
+        #sidebar {
+            width: 250px;
+            background-color: var(--sidebar-bg);
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            right: 0;
+            padding: 20px;
+            box-shadow: -2px 0 5px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            border-left: 1px solid var(--border-color);
+        }
+        #sidebar h2 {
+            font-size: 1.5rem;
+            text-align: center;
+            margin-bottom: 30px;
+            color: var(--primary-color);
+        }
+        .nav-links {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            flex-grow: 1;
+        }
+        .nav-links a {
+            display: flex;
+            align-items: center;
+            padding: 15px 10px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .nav-links a:hover, .nav-links a.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        .nav-links a svg {
+            margin-left: 15px;
+            width: 20px;
+            height: 20px;
+        }
+        .sidebar-footer {
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        #main-content {
+            margin-right: 250px;
+            width: calc(100% - 250px);
+            padding: 20px;
+        }
+        .page { display: none; }
+        .page.active { display: block; }
+        
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        .user-profile { display: flex; align-items: center; }
+        .user-profile img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-left: 15px;
+            background-color: var(--border-color);
+        }
+        .header-actions button {
+            margin-right: 10px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            color: var(--text-color);
+            font-size: 1.2rem;
+        }
+
+        /* --- WIDGETS & CARDS --- */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+        }
+        .card {
+            background-color: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+        }
+        .card h3 { margin-top: 0; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 15px; }
+
+        /* Countdown Timer */
+        .countdown {
+            background: linear-gradient(45deg, #dc3545, #fd7e14);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-size: 1.2em;
+            font-weight: bold;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        /* Admin Panel */
+        #admin-panel {
+            background-color: #fffbe6;
+            border: 1px solid #ffe58f;
+            color: #d46b08;
+        }
+        .dark-mode #admin-panel {
+            background-color: #3e3820; border-color: #876800; color: #ffc107;
+        }
+        
+        /* Chat Section */
+        .chat-box {
+            height: 400px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            padding: 10px;
+        }
+        .message {
+            max-width: 70%;
+            padding: 10px 15px;
+            border-radius: 18px;
+            margin-bottom: 10px;
+            word-wrap: break-word;
+        }
+        .message.sent {
+            background-color: var(--primary-color);
+            color: white;
+            align-self: flex-start; /* Messages from others */
+        }
+        .message.received {
+            background-color: var(--bg-color);
+            align-self: flex-end; /* User's own messages */
+        }
+        .message strong { display: block; font-size: 0.8em; margin-bottom: 5px; opacity: 0.8; }
+        
+        .chat-input-area { display: flex; gap: 10px; margin-top:10px; }
+        .chat-input-area input {
+            flex: 1; padding: 12px; border: 1px solid var(--border-color); border-radius: 18px; background: var(--bg-color); color:var(--text-color);
+        }
+        .chat-input-area button {
+            background: var(--primary-color); color: white; border: none; width:45px; height:45px; cursor: pointer; border-radius: 50%; font-size:1.2rem;
+        }
+
+        /* Profile Section */
+        .profile-header { text-align: center; margin-bottom: 30px;}
+        .profile-header img { width: 120px; height: 120px; border-radius: 50%; border: 4px solid var(--card-bg); box-shadow: var(--shadow); }
+        .profile-header button { font-size: 0.8rem; padding: 5px 10px; }
+        
+        /* Library Section */
+        .filter-buttons { margin-bottom: 20px; }
+        .filter-buttons button { margin-left: 10px; padding: 8px 15px; }
+
+        @media (max-width: 768px) {
+            #sidebar {
+                width: 100%;
+                height: auto;
+                position: static;
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: center;
+                border-left: none;
+                border-bottom: 1px solid var(--border-color);
+            }
+            #sidebar h2 { display: none; }
+            .nav-links { display: flex; justify-content: center; flex-grow: 0; }
+            .nav-links a { padding: 10px; }
+            .nav-links a span { display: none; }
+            #main-content {
+                margin-right: 0;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ======================= AUTHENTICATION PAGE ======================= -->
+    <div id="auth-container">
+        <div class="auth-box">
+            <!-- Login/Signup views will be the same as your old code -->
+             <div id="login-view">
+                <h2>تسجيل الدخول</h2>
+                <input type="email" id="login-email" placeholder="البريد الإلكتروني" required>
+                <input type="password" id="login-password" placeholder="كلمة السر" required>
+                <button onclick="handleLogin()">دخول</button>
+                <p id="error-message"></p>
+                <p>ليس لديك حساب؟ <span class="auth-toggle" onclick="toggleAuthView()">إنشاء حساب جديد</span></p>
+            </div>
+            <div id="signup-view" style="display: none;">
+                <h2>إنشاء حساب جديد</h2>
+                <input type="text" id="signup-name" placeholder="اسمك الكامل" required>
+                <input type="email" id="signup-email" placeholder="البريد الإلكتروني" required>
+                <input type="password" id="signup-password" placeholder="كلمة السر (6 حروف على الأقل)" required>
+                <button onclick="handleSignup()">إنشاء حساب</button>
+                <p>لديك حساب بالفعل؟ <span class="auth-toggle" onclick="toggleAuthView()">تسجيل الدخول</span></p>
+            </div>
+             <hr>
+            <button class="google-btn" onclick="signInWithGoogle()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16" style="vertical-align: middle; margin-left: 8px;">
+                    <path d="M15.545 6.558a9.42 9.42 0 0 1 .139 1.626c0 2.434-.87 4.492-2.384 5.885h.002C11.978 15.292 10.158 16 8 16A8 8 0 1 1 8 0a7.689 7.689 0 0 1 5.352 2.082l-2.284 2.284A4.347 4.347 0 0 0 8 3.166c-2.087 0-3.86 1.408-4.492 3.304a4.792 4.792 0 0 0 0 3.063h.003c.635 1.893 2.405 3.301 4.492 3.301 1.078 0 2.004-.276 2.722-.764h-.003a3.702 3.702 0 0 0 1.599-2.431H8v-3.08h7.545z"/>
+                </svg>
+                تسجيل الدخول عبر جوجل
+            </button>
+        </div>
+    </div>
+
+    <!-- ======================= MAIN APPLICATION ======================= -->
+    <div id="main-app" style="display: none;">
+        <!-- SIDEBAR NAVIGATION -->
+        <nav id="sidebar">
+            <h2>منصة 4م2</h2>
+            <ul class="nav-links">
+                <li><a href="#" class="nav-link active" data-target="dashboard">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"></path></svg>
+                    <span>الرئيسية</span>
+                </a></li>
+                <li><a href="#" class="nav-link" data-target="profile">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"></path></svg>
+                    <span>الملف الشخصي</span>
+                </a></li>
+                <li><a href="#" class="nav-link" data-target="chat">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"></path></svg>
+                    <span>ساحة النقاش</span>
+                </a></li>
+                <li><a href="#" class="nav-link" data-target="news">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"></path></svg>
+                    <span>الأخبار</span>
+                </a></li>
+                <li><a href="#" class="nav-link" data-target="calendar">
+                     <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"></path></svg>
+                    <span>الرزنامة</span>
+                </a></li>
+                <li><a href="#" class="nav-link" data-target="timetable">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"></path><path d="M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z"></path></svg>
+                    <span>جدول التوقيت</span>
+                </a></li>
+                <li><a href="#" class="nav-link" data-target="library">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-8 12.5v-9l6 4.5-6 4.5z"></path></svg>
+                    <span>المكتبة الدراسية</span>
+                </a></li>
+            </ul>
+            <div class="sidebar-footer">
+                <button id="dark-mode-toggle">🌙</button>
+                <button id="logout-btn">تسجيل الخروج</button>
+            </div>
+        </nav>
+
+        <!-- MAIN CONTENT -->
+        <main id="main-content">
+            <header>
+                <div class="user-profile">
+                    <img id="user-avatar" src="https://via.placeholder.com/40" alt="User Avatar">
+                    <h1 id="welcome-message">أهلاً بك</h1>
+                </div>
+            </header>
+
+            <!-- Page: Dashboard -->
+            <section id="dashboard-page" class="page active">
+                <div class="countdown" id="exam-countdown">...</div>
+                <div id="admin-panel" class="card" style="display: none;">
+                    <h3>⭐ لوحة تحكم الأدمن</h3>
+                    <p>مرحباً بك يا مدير! يمكنك هنا إدارة المستخدمين والمحتوى. UID: <strong id="user-uid-display"></strong></p>
+                    <p>(هذه اللوحة تظهر لك فقط)</p>
+                </div>
+                 <div class="grid-container" style="margin-top: 20px;">
+                    <div class="card">
+                        <h3>💬 آخر النقاشات</h3>
+                        <p>هنا ستظهر مقتطفات من آخر الرسائل في ساحة النقاش.</p>
+                    </div>
+                    <div class="card">
+                        <h3>📰 آخر الأخبار</h3>
+                        <p>هنا ستظهر عناوين آخر الأخبار من قسم الأخبار.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Page: Profile -->
+            <section id="profile-page" class="page">
+                <div class="card">
+                    <div class="profile-header">
+                        <img id="profile-page-avatar" src="https://via.placeholder.com/120" alt="User Avatar">
+                        <h2 id="profile-page-name">اسم المستخدم</h2>
+                        <button onclick="alert('خاصية رفع صورة جديدة ستتوفر قريباً!')">تغيير الصورة</button>
+                    </div>
+                    <h3>تعديل معلوماتك</h3>
+                    <p>يمكنك تغيير اسم العرض الخاص بك هنا.</p>
+                    <input type="text" id="profile-name-input" placeholder="ادخل اسمك الجديد" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color);">
+                    <button onclick="updateDisplayName()" style="margin-top: 10px; padding: 10px 20px;">حفظ التغييرات</button>
+                </div>
+            </section>
+
+            <!-- Page: Chat -->
+            <section id="chat-page" class="page">
+                 <div class="card">
+                    <h3>💬 ساحة النقاش</h3>
+                    <div class="chat-box" id="chat-messages"></div>
+                    <div class="chat-input-area">
+                        <input type="text" id="msg-input" placeholder="اكتب رسالتك..." onkeyup="if(event.keyCode === 13) sendMessage()">
+                        <button onclick="sendMessage()">➤</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Page: News -->
+            <section id="news-page" class="page">
+                <div class="card">
+                     <h3>📰 أخبار المتوسطة</h3>
+                     <p>تم تحسين عرض الأخبار. بدلاً من الإطار القديم، يمكن للأدمن إضافة الأخبار مباشرة هنا كبطاقات جميلة. حالياً، الإطار القديم ما زال موجوداً مؤقتاً.</p>
+                     <iframe src="https://www.facebook.com/plugins/page.php?href=https%3A%2F%2Fwww.facebook.com%2FCEM.SOUIDANI.BOUDJEMAA&tabs=timeline&width=500&height=500&small_header=false&adapt_container_width=true&hide_cover=false&show_facepile=true&appId" width="100%" height="500" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allowfullscreen="true" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>
+                </div>
+            </section>
+
+             <!-- Page: Calendar -->
+            <section id="calendar-page" class="page">
+                <div class="card">
+                    <h3>📅 رزنامة الاختبارات والفعاليات</h3>
+                    <p>هذا القسم مخصص لعرض الرزنامة. يمكن للأدمن إضافة وتعديل الأحداث هنا، مثل مواعيد الاختبارات والعطل.</p>
+                    <!-- سيتم إضافة كود عرض الرزنامة هنا لاحقاً -->
+                </div>
+            </section>
+
+            <!-- Page: Timetable -->
+            <section id="timetable-page" class="page">
+                <div class="card">
+                    <h3>🗓️ جدول التوقيت الدراسي</h3>
+                    <p>هذا القسم مخصص لعرض جدول الحصص الأسبوعي.</p>
+                     <!-- سيتم إضافة كود عرض الجدول هنا لاحقاً -->
+                </div>
+            </section>
+
+            <!-- Page: Library -->
+            <section id="library-page" class="page">
+                <div class="card">
+                    <h3>📚 المكتبة الدراسية</h3>
+                    <p>اختر المادة لعرض محتوياتها من ملخصات، فيديوهات، ومواضيع اختبارات.</p>
+                    <div class="filter-buttons">
+                        <button class="active">الكل</button>
+                        <button>الرياضيات</button>
+                        <button>الفيزياء</button>
+                        <button>اللغة العربية</button>
+                    </div>
+                    <div class="grid-container">
+                        <!-- مثال على بطاقة محتوى -->
+                        <div class="card">
+                            <h4>شرح درس الجذور التربيعية</h4>
+                            <p>فيديو من اليوتيوب يشرح الدرس بالتفصيل.</p>
+                            <a href="#">مشاهدة الفيديو</a>
+                        </div>
+                        <div class="card">
+                            <h4>ملخص الوحدة الأولى</h4>
+                            <p>ملف PDF يحتوي على ملخص لأهم النقاط.</p>
+                            <a href="#">تحميل الملخص</a>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- ======================= FIREBASE SDKs ======================= -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js";
+        import { getDatabase, ref, push, onValue, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCFMeXOxU5MdInA0B_dmJ8CdUVVWWXFqkc",
+            authDomain: "class-4m2.firebaseapp.com",
+            databaseURL: "https://class-4m2-default-rtdb.firebaseio.com",
+            projectId: "class-4m2",
+            storageBucket: "class-4m2.firebasestorage.app",
+            messagingSenderId: "355165346525",
+            appId: "1:355165346525:web:05786d80e4351637b35934"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+        const messagesRef = ref(db, 'messages');
+        const googleProvider = new GoogleAuthProvider();
+        
+        // Your Admin User ID has been set!
+        const ADMIN_UID = "2A1mKrwFgVak8IsDWwq4kmbfAyt1";
+
+        // --- GLOBAL FUNCTIONS ---
+        window.toggleAuthView = () => {
+            document.getElementById('login-view').style.display = document.getElementById('login-view').style.display === 'none' ? 'block' : 'none';
+            document.getElementById('signup-view').style.display = document.getElementById('signup-view').style.display === 'none' ? 'block' : 'none';
+            document.getElementById('error-message').innerText = '';
+        };
+        window.handleSignup = () => {
+            const name = document.getElementById('signup-name').value;
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            if (!name || !email || !password) {
+                document.getElementById('error-message').innerText = "الرجاء ملء جميع الحقول.";
+                return;
+            }
+            createUserWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    updateProfile(userCredential.user, { displayName: name });
+                })
+                .catch(handleAuthError);
+        };
+        window.handleLogin = () => signInWithEmailAndPassword(auth, document.getElementById('login-email').value, document.getElementById('login-password').value).catch(handleAuthError);
+        window.signInWithGoogle = () => signInWithPopup(auth, googleProvider).catch(handleAuthError);
+        window.sendMessage = () => {
+            const msgInput = document.getElementById('msg-input');
+            const message = msgInput.value.trim();
+            if(message !== "" && auth.currentUser) {
+                push(messagesRef, {
+                    uid: auth.currentUser.uid,
+                    username: auth.currentUser.displayName || auth.currentUser.email,
+                    text: message,
+                    timestamp: serverTimestamp()
+                });
+                msgInput.value = "";
+            }
+        };
+        window.updateDisplayName = () => {
+            const newName = document.getElementById('profile-name-input').value.trim();
+            if(newName && auth.currentUser) {
+                updateProfile(auth.currentUser, {
+                    displayName: newName
+                }).then(() => {
+                    alert('تم تحديث اسمك بنجاح!');
+                    // Update UI elements
+                    document.getElementById('welcome-message').innerText = `أهلاً بك، ${newName}`;
+                     document.getElementById('profile-page-name').innerText = newName;
+                }).catch((error) => {
+                    alert('حدث خطأ أثناء تحديث الاسم.');
+                    console.error("Profile Update Error:", error);
+                });
+            }
+        };
+
+        // --- AUTH STATE LISTENER ---
+        onAuthStateChanged(auth, (user) => {
+            const authContainer = document.getElementById('auth-container');
+            const mainApp = document.getElementById('main-app');
+            if (user) {
+                // User is signed in
+                authContainer.style.display = 'none';
+                mainApp.style.display = 'flex';
+                
+                const displayName = user.displayName || user.email;
+                document.getElementById('welcome-message').innerText = `أهلاً بك، ${displayName}`;
+                document.getElementById('user-avatar').src = user.photoURL || `https://ui-avatars.com/api/?name=${displayName}&background=random`;
+                
+                // Populate profile page
+                document.getElementById('profile-page-avatar').src = user.photoURL || `https://ui-avatars.com/api/?name=${displayName}&size=120&background=random`;
+                document.getElementById('profile-page-name').innerText = displayName;
+                document.getElementById('profile-name-input').value = user.displayName || '';
+
+                // Check for Admin
+                if(user.uid === ADMIN_UID){
+                    document.getElementById('admin-panel').style.display = 'block';
+                    document.getElementById('user-uid-display').innerText = user.uid;
+                }
+            } else {
+                // User is signed out
+                authContainer.style.display = 'flex';
+                mainApp.style.display = 'none';
+            }
+        });
+
+        // --- REALTIME DATABASE LISTENER (CHAT) ---
+        onValue(messagesRef, (snapshot) => {
+            const chatBox = document.getElementById('chat-messages');
+            chatBox.innerHTML = '';
+            const data = snapshot.val();
+            if (data) {
+                Object.values(data).forEach(msg => {
+                    const messageEl = document.createElement('div');
+                    messageEl.classList.add('message');
+                    // Check if the message is from the current user
+                    if (auth.currentUser && msg.uid === auth.currentUser.uid) {
+                        messageEl.classList.add('received');
+                    } else {
+                        messageEl.classList.add('sent');
+                    }
+                    messageEl.innerHTML = `<strong>${msg.username}</strong>${msg.text}`;
+                    chatBox.appendChild(messageEl);
+                });
+            }
+            chatBox.scrollTop = chatBox.scrollHeight;
+        });
+
+        // --- ERROR HANDLER ---
+        function handleAuthError(error) {
+            const el = document.getElementById('error-message');
+            console.error("Auth Error:", error.code);
+            switch(error.code) {
+                case 'auth/wrong-password':
+                case 'auth/user-not-found':
+                case 'auth/invalid-credential':
+                    el.innerText = 'البريد الإلكتروني أو كلمة السر غير صحيحة.'; break;
+                case 'auth/email-already-in-use':
+                    el.innerText = 'هذا البريد الإلكتروني مسجل بالفعل.'; break;
+                default:
+                    el.innerText = 'حدث خطأ. يرجى المحاولة مرة أخرى.';
+            }
+        }
+        
+        // Logout Button
+        document.getElementById('logout-btn').addEventListener('click', () => signOut(auth));
+    </script>
+    
+    <!-- ======================= UI/UX JAVASCRIPT ======================= -->
+    <script>
+        // Dark Mode Toggle
+        const darkModeToggle = document.getElementById('dark-mode-toggle');
+        darkModeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            const isDarkMode = document.body.classList.contains('dark-mode');
+            localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+            darkModeToggle.innerText = isDarkMode ? '☀️' : '🌙';
+        });
+
+        // Apply saved theme on load
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+            darkModeToggle.innerText = '☀️';
+        }
+
+        // Countdown Timer
+        const countDownDate = new Date("March 3, 2026 08:00:00").getTime();
+        setInterval(() => {
+            const distance = countDownDate - new Date().getTime();
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+            document.getElementById("exam-countdown").innerHTML = `⏳ متبقي لاختبارات الفصل الثاني: ${days} يوم و ${hours} س و ${minutes} د و ${seconds} ث`;
+        }, 1000);
+
+        // --- Navigation Logic ---
+        const navLinks = document.querySelectorAll('.nav-link');
+        const pages = document.querySelectorAll('.page');
+
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                
+                // Update active link
+                navLinks.forEach(l => l.classList.remove('active'));
+                link.classList.add('active');
+
+                // Show target page
+                const targetId = link.getAttribute('data-target') + '-page';
+                pages.forEach(page => {
+                    page.style.display = page.id === targetId ? 'block' : 'none';
+                });
+            });
+        });
+    </script>
+</body>
+</html>
